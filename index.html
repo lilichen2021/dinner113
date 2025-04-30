@@ -2,66 +2,108 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>訂餐表單</title>
+  <title>優雅水彩風報名表</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
+      font-family: 'Noto Serif TC', serif;
+      background: linear-gradient(to bottom right, #fdfbfb, #ebedee);
+      margin: 0;
+      padding: 2rem;
+      color: #333;
     }
     h2 {
-      color: #333;
+      text-align: center;
+      color: #5c5470;
+    }
+    form {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      margin: auto;
     }
     label {
       font-weight: bold;
     }
+    input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 5px;
+      margin-bottom: 20px;
+    }
+    input[type="radio"] {
+      margin-right: 5px;
+    }
     table {
       border-collapse: collapse;
-      margin-bottom: 20px;
       width: 100%;
+      margin-bottom: 1rem;
     }
     th, td {
       border: 1px solid #ccc;
       width: 14.28%;
       height: 60px;
       text-align: center;
+      vertical-align: middle;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      position: relative;
     }
-    .selected {
-      background-color: #b3e5fc;
-    }
-    .disabled {
-      background-color: #eee;
+    td.disabled {
+      background-color: #f5f5f5;
       color: #aaa;
       pointer-events: none;
       cursor: not-allowed;
     }
-    #submitButton {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #2196f3;
-      color: white;
-      border: none;
-      cursor: pointer;
+    td.disabled::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: -1.5em;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #999;
+      color: #fff;
+      padding: 3px 6px;
       border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      display: none;
     }
-    #submitButton:hover {
-      background-color: #1976d2;
+    td.disabled:hover::after {
+      display: block;
+    }
+    td.selected {
+      background-color: #c5dfff;
+    }
+    button {
+      padding: 10px 20px;
+      background: #a2c1f2;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background: #7da9e4;
     }
   </style>
 </head>
 <body>
 
-<h2>請填寫姓名並選擇日期</h2>
+<h2>請填寫姓名與選擇用餐日期</h2>
 
 <form action="https://docs.google.com/forms/d/e/1FAIpQLSfdKrmBACXy83OvA74N1ssOHnZ2PxqvfhCa2ySAiDO3Ze9KoA/formResponse" method="POST" target="_self" onsubmit="updateFormData()">
   <label for="name">姓名：</label>
-  <input type="text" name="entry.1311578602" id="name" required><br><br>
+  <input type="text" name="entry.1311578602" id="name" required>
 
   <label>是否訂餐：</label><br>
   <input type="radio" name="entry.288196216" value="訂餐" id="mealChoiceYes" onchange="toggleMealOptions(true)"> 訂餐
-  <input type="radio" name="entry.288196216" value="不訂餐" id="mealChoiceNo" onchange="toggleMealOptions(false)"> 不訂餐<br><br>
+  <input type="radio" name="entry.288196216" value="不訂餐" id="mealChoiceNo" onchange="toggleMealOptions(false)"> 不訂餐
 
   <table>
     <thead>
@@ -78,14 +120,12 @@
     <tbody id="calendar-body"></tbody>
   </table>
 
-  <div>
-    <strong>已選擇：</strong><span id="count">0</span> 天
-  </div>
+  <div><strong>已選擇：</strong><span id="count">0</span> 天</div>
 
-  <input type="hidden" name="entry.1547040468" id="selectedDatesInput"> <!-- 選擇日期清單 -->
-  <input type="hidden" name="entry.1144432548" id="selectedDaysCount"> <!-- 選擇天數 -->
+  <input type="hidden" name="entry.1547040468" id="selectedDatesInput">
+  <input type="hidden" name="entry.1144432548" id="selectedDaysCount">
 
-  <button type="submit" id="submitButton">送出</button>
+  <button type="submit">送出</button>
 </form>
 
 <script>
@@ -96,65 +136,54 @@
   const startDate = new Date("2025-04-30");
   const endDate = new Date("2025-05-31");
 
-  // 禁選特定日期（ISO 格式）
-  const disabledDates = ["2025-05-10", "2025-05-20"];
+  const disabledDates = new Set(["5/10"]);
 
-  function toggleDate(cell) {
-    if (cell.classList.contains('selected')) {
-      cell.classList.remove('selected');
-      selectedDates.delete(cell.dataset.date);
-    } else {
-      cell.classList.add('selected');
-      selectedDates.add(cell.dataset.date);
-    }
-    countDisplay.textContent = selectedDates.size;
+  function formatDateDisplay(date) {
+    return `${date.getMonth() + 1}/${date.getDate()}`;
   }
 
-  function renderCalendar() {
-    let d = new Date(startDate);
-    let row = document.createElement('tr');
-    const offset = (d.getDay() + 6) % 7;
+  const startDay = (startDate.getDay() + 6) % 7;
+  let row = document.createElement('tr');
+  for (let i = 0; i < startDay; i++) {
+    row.appendChild(document.createElement('td'));
+  }
 
-    for (let i = 0; i < offset; i++) {
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const cell = document.createElement('td');
+    const displayDate = formatDateDisplay(d);
+    cell.textContent = d.getDate();
+    cell.dataset.date = displayDate;
+
+    const isSunday = d.getDay() === 0;
+    const isDisabled = isSunday || disabledDates.has(displayDate);
+    if (isDisabled) {
+      cell.classList.add('disabled');
+      cell.dataset.tooltip = "這天不可選";
+    } else {
+      cell.addEventListener('click', () => {
+        if (document.getElementById('mealChoiceNo').checked) return;
+        cell.classList.toggle('selected');
+        if (selectedDates.has(displayDate)) {
+          selectedDates.delete(displayDate);
+        } else {
+          selectedDates.add(displayDate);
+        }
+        countDisplay.textContent = selectedDates.size;
+      });
+    }
+
+    row.appendChild(cell);
+    if ((d.getDay() + 6) % 7 === 6) {
+      calendarBody.appendChild(row);
+      row = document.createElement('tr');
+    }
+  }
+
+  if (row.children.length > 0) {
+    while (row.children.length < 7) {
       row.appendChild(document.createElement('td'));
     }
-
-    while (d <= endDate) {
-      const cell = document.createElement('td');
-      const isoDate = d.toISOString().slice(0, 10);
-      cell.textContent = d.getDate();
-      cell.dataset.date = isoDate;
-
-      const isSunday = d.getDay() === 0;
-      const isDisabled = disabledDates.includes(isoDate);
-
-      if (isSunday || isDisabled) {
-        cell.classList.add('disabled');
-        cell.title = "這天不可選";
-      } else {
-        cell.addEventListener('click', () => {
-          if (!document.getElementById('mealChoiceNo').checked) {
-            toggleDate(cell);
-          }
-        });
-      }
-
-      row.appendChild(cell);
-
-      if (((d.getDay() + 6) % 7) === 6) {
-        calendarBody.appendChild(row);
-        row = document.createElement('tr');
-      }
-
-      d.setDate(d.getDate() + 1);
-    }
-
-    if (row.children.length > 0) {
-      while (row.children.length < 7) {
-        row.appendChild(document.createElement('td'));
-      }
-      calendarBody.appendChild(row);
-    }
+    calendarBody.appendChild(row);
   }
 
   function updateFormData() {
@@ -163,26 +192,20 @@
   }
 
   function toggleMealOptions(isMealSelected) {
-    const calendarCells = document.querySelectorAll('td');
+    const cells = document.querySelectorAll('#calendar-body td:not(.disabled)');
     if (isMealSelected) {
-      calendarCells.forEach(cell => {
-        if (!cell.classList.contains('disabled')) {
-          cell.style.pointerEvents = 'auto';
-        }
-      });
+      cells.forEach(cell => cell.style.pointerEvents = 'auto');
     } else {
-      calendarCells.forEach(cell => {
-        if (!cell.classList.contains('disabled')) {
-          cell.style.pointerEvents = 'none';
-          cell.classList.remove('selected');
-        }
+      cells.forEach(cell => {
+        cell.style.pointerEvents = 'none';
+        cell.classList.remove('selected');
       });
       selectedDates.clear();
-      countDisplay.textContent = selectedDates.size;
+      countDisplay.textContent = "0";
     }
   }
 
-  renderCalendar();
+  // 預設為禁用
   toggleMealOptions(false);
 </script>
 
