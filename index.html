@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>報名表單</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+    }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      width: 14.28%;
+      height: 60px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .selected {
+      background-color: #b3e5fc;
+    }
+    .disabled {
+      background-color: #eee;
+      color: #aaa;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+    #submitButton {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #submitButton:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+<h2>請填寫姓名並選擇日期</h2>
+
+<form action="https://docs.google.com/forms/d/e/1FAIpQLSfdKrmBACXy83OvA74N1ssOHnZ2PxqvfhCa2ySAiDO3Ze9KoA/formResponse" method="POST" target="_self" onsubmit="updateFormData()">
+  <label for="name">姓名：</label>
+  <input type="text" name="entry.1311578602" id="name" required><br><br>
+
+  <label>是否訂餐：</label><br>
+  <input type="radio" name="mealChoice" value="訂餐" id="mealChoiceYes" onchange="toggleMealOptions(true)"> 訂餐
+  <input type="radio" name="mealChoice" value="不訂餐" id="mealChoiceNo" onchange="toggleMealOptions(false)"> 不訂餐<br><br>
+
+  <table>
+    <thead>
+      <tr>
+        <th>週一</th>
+        <th>週二</th>
+        <th>週三</th>
+        <th>週四</th>
+        <th>週五</th>
+        <th>週六</th>
+        <th>週日</th>
+      </tr>
+    </thead>
+    <tbody id="calendar-body"></tbody>
+  </table>
+
+  <div>
+    <strong>已選擇：</strong><span id="count">0</span> 天
+  </div>
+
+  <input type="hidden" name="entry.1547040468" id="selectedDatesInput"> <!-- 選擇日期清單 -->
+  <input type="hidden" name="entry.1144432548" id="selectedDaysCount"> <!-- 選擇天數 -->
+
+  <button type="submit" id="submitButton">送出</button>
+</form>
+
+<script>
+  const selectedDates = new Set();
+  const countDisplay = document.getElementById('count');
+  const selectedDaysCountInput = document.getElementById('selectedDaysCount');
+  const calendarBody = document.getElementById('calendar-body');
+  const startDate = new Date("2025-04-30");
+  const endDate = new Date("2025-05-31");
+
+  // 禁選特定日期（ISO 格式）
+  const disabledDates = ["2025-05-10", "2025-05-20"];
+
+  function toggleDate(cell) {
+    if (cell.classList.contains('selected')) {
+      cell.classList.remove('selected');
+      selectedDates.delete(cell.dataset.date);
+    } else {
+      cell.classList.add('selected');
+      selectedDates.add(cell.dataset.date);
+    }
+    countDisplay.textContent = selectedDates.size;
+  }
+
+  function renderCalendar() {
+    let d = new Date(startDate);
+    let row = document.createElement('tr');
+    const offset = (d.getDay() + 6) % 7;
+
+    for (let i = 0; i < offset; i++) {
+      row.appendChild(document.createElement('td'));
+    }
+
+    while (d <= endDate) {
+      const cell = document.createElement('td');
+      const isoDate = d.toISOString().slice(0, 10);
+      cell.textContent = d.getDate();
+      cell.dataset.date = isoDate;
+
+      const isSunday = d.getDay() === 0;
+      const isDisabled = disabledDates.includes(isoDate);
+
+      if (isSunday || isDisabled) {
+        cell.classList.add('disabled');
+        cell.title = "這天不可選";
+      } else {
+        cell.addEventListener('click', () => {
+          if (!document.getElementById('mealChoiceNo').checked) {
+            toggleDate(cell);
+          }
+        });
+      }
+
+      row.appendChild(cell);
+
+      if (((d.getDay() + 6) % 7) === 6) {
+        calendarBody.appendChild(row);
+        row = document.createElement('tr');
+      }
+
+      d.setDate(d.getDate() + 1);
+    }
+
+    if (row.children.length > 0) {
+      while (row.children.length < 7) {
+        row.appendChild(document.createElement('td'));
+      }
+      calendarBody.appendChild(row);
+    }
+  }
+
+  function updateFormData() {
+    document.getElementById('selectedDatesInput').value = Array.from(selectedDates).join(', ');
+    selectedDaysCountInput.value = selectedDates.size;
+  }
+
+  function toggleMealOptions(isMealSelected) {
+    const calendarCells = document.querySelectorAll('td');
+    if (isMealSelected) {
+      calendarCells.forEach(cell => {
+        if (!cell.classList.contains('disabled')) {
+          cell.style.pointerEvents = 'auto';
+        }
+      });
+    } else {
+      calendarCells.forEach(cell => {
+        if (!cell.classList.contains('disabled')) {
+          cell.style.pointerEvents = 'none';
+          cell.classList.remove('selected');
+        }
+      });
+      selectedDates.clear();
+      countDisplay.textContent = selectedDates.size;
+    }
+  }
+
+  renderCalendar();
+  toggleMealOptions(false);
+</script>
+
+</body>
+</html>
