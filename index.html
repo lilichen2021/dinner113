@@ -75,10 +75,10 @@ td.selected {
   const countDisplay = document.getElementById('count');
   const selectedDaysCountInput = document.getElementById('selectedDaysCount');
   const calendarBody = document.getElementById('calendar-body');
-  const startDate = new Date("2025-04-30");
-  const endDate = new Date("2025-05-31");
+  const startDate = new Date("5/18");
+  const endDate = new Date("6/30");
 
-  const disabledDates = new Set(["5/10"]);
+  const disabledDates = new Set(["6/20"]);
 
   function formatDateDisplay(date) {
     return `${date.getMonth() + 1}/${date.getDate()}`;
