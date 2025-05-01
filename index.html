@@ -84,7 +84,7 @@
 
   <!-- 訂餐選項 -->
   <div class="meal-row">
-    <label>是否訂餐：</label>
+    <label>是否訂餐：</label><br>
     <label><input type="radio" name="mealChoice" value="訂餐" id="mealChoiceYes" onchange="toggleMealOptions(true)" required> 訂餐</label>
     <label><input type="radio" name="mealChoice" value="不訂餐" id="mealChoiceNo" onchange="toggleMealOptions(false)"> 不訂餐</label>
   </div>
@@ -117,7 +117,7 @@
 </form>
 
 <script>
-  const disabledDates = ['2025-06-20']; // 禁用日期
+  const disabledDates = ['2025-06-20,2025-06-21']; // 禁用日期
   const selectedDates = new Set();
   const countDisplay = document.getElementById('count');
   const selectedDaysCountInput = document.getElementById('selectedDaysCount');
