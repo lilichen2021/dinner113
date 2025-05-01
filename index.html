@@ -6,33 +6,80 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
   <style>
     body {
-  background-color: #0a0f2c; /* 深藍背景 */
-  color: #000; /* 預設文字黑色 */
-  font-family: '標楷體', "DFKai-SB", serif;
-  margin: 0;
-  padding: 2rem;
-}
+    background-color: #0a0f2c;
+      color: #000;
+      font-family: '標楷體', "DFKai-SB", serif;
+      margin: 0;
+      padding: 2rem;
+    }
 
-form {
-  background-color: #ffffff; /* 表單區背景白 */
-  color: #000; /* 表單內文字黑色 */
-  border-radius: 15px;
-  padding: 2rem;
-  max-width: 800px;
-  margin: auto;
-  box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff44;
-  border: 1px solid #00f0ff;
-}
+    form {
+      background-color: #ffffff;
+      color: #000;
+      border-radius: 15px;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 0 15px #00f0ff, 0 0 30px #00f0ff44;
+      border: 1px solid #00f0ff;
+    }
 
-th, td, label, h2, strong, span {
-  color: #000; /* 表格與標籤文字為黑色 */
-}
+    table {
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      width: 100%;
+    }
 
-td.selected {
-  background-color: #00f0ff;
-  color: #000;
-  box-shadow: inset 0 0 10px #00f0ff, 0 0 10px #00f0ff;
-  }
+    th, td {
+      border: 1px solid #ccc;
+      width: 14.28%;
+      height: 60px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    td.selected {
+      background-color: #00f0ff;
+      color: #000;
+      box-shadow: inset 0 0 10px #00f0ff, 0 0 10px #00f0ff;
+    }
+
+    td.disabled {
+      background-color: #eee;
+      color: #999;
+      pointer-events: none;
+    }
+
+    td.disabled::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6em;
+      color: #666;
+    }
+
+    button {
+      background-color: transparent;
+      color: #00f0ff;
+      border: 2px solid #00f0ff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      width: 100%;
+      box-shadow: 0 0 8px #00f0ff;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #00f0ff;
+      color: #000;
+      box-shadow: 0 0 15px #00f0ff;
+    }
   </style>
 </head>
 <body>
@@ -75,10 +122,10 @@ td.selected {
   const countDisplay = document.getElementById('count');
   const selectedDaysCountInput = document.getElementById('selectedDaysCount');
   const calendarBody = document.getElementById('calendar-body');
-  const startDate = new Date("5/18");
-  const endDate = new Date("6/30");
+  const startDate = new Date("2025-05-18");
+  const endDate = new Date("2025-06-30");
 
-  const disabledDates = new Set(["6/20"]);
+  const disabledDates = new Set(["2025-06-20"]);// 禁用日期
 
   function formatDateDisplay(date) {
     return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -93,7 +140,7 @@ td.selected {
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
     const cell = document.createElement('td');
     const displayDate = formatDateDisplay(d);
-    cell.textContent = d.getDate();
+    cell.textContent = `${d.getMonth() + 1}/${d.getDate()}`;  // 顯示表格「月/日」
     cell.dataset.date = displayDate;
 
     const isSunday = d.getDay() === 0;
